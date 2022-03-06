@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
 
+    public Vector3 move;
 
     [SerializeField]
     private InputActionReference moveControl;
@@ -15,14 +16,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float playerSpeed = 2.0f;
     [SerializeField]
-    private float jumpHeight = 1.0f;
+    private float jumpHeight = 20.0f;
     [SerializeField]
     private float gravityValue = -9.81f;
     [SerializeField]
-    private float rotationSpeed = 4f;
+    private float rotationSpeed = 200f;
+    [SerializeField]
+    private float jumpHeightPower = 0f;
+
 
     private CharacterController controller;
-    private Vector3 playerVelocity;
+
+    public Vector3 playerVelocity;
+    [SerializeField]
     private bool groundedPlayer;
     private Transform cameraMainTransform;
 
@@ -40,6 +46,7 @@ public class PlayerController : MonoBehaviour
     {
         controller = gameObject.GetComponent<CharacterController>();
         cameraMainTransform = Camera.main.transform;
+        Application.targetFrameRate = 60;
     }
 
     void Update()
@@ -47,10 +54,11 @@ public class PlayerController : MonoBehaviour
         groundedPlayer = controller.isGrounded;
         if (groundedPlayer && playerVelocity.y < 0)
         {
+            
             playerVelocity.y = 0f;
         }
         Vector2 movement = moveControl.action.ReadValue<Vector2>();
-;       Vector3 move = new Vector3(movement.x, 0, movement.y);
+;       move = new Vector3(movement.x, 0, movement.y);
         move = cameraMainTransform.forward * move.z + cameraMainTransform.right * move.x;
         move.y = 0f;
         controller.Move(move * Time.deltaTime * playerSpeed);
@@ -60,6 +68,13 @@ public class PlayerController : MonoBehaviour
         if (jumpControl.action.triggered && groundedPlayer)
         {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
+            jumpHeightPower = jumpHeight;
+            Debug.Log(playerVelocity.y);
+        }
+
+        if (jumpControl.action.triggered )
+        {
+            Debug.Log('Z');
         }
 
         playerVelocity.y += gravityValue * Time.deltaTime;
@@ -70,6 +85,35 @@ public class PlayerController : MonoBehaviour
             Quaternion rotation = Quaternion.Euler(0f,targetAngle,0f);
             transform.rotation = Quaternion.Lerp(transform.rotation, rotation, Time.deltaTime * rotationSpeed);
 
+        }
+        transform.GetChild(0).forward = (playerVelocity +move).normalized;
+        float intensite = (playerVelocity + move).magnitude;
+        //Debug.Log(intensite);
+        if (!groundedPlayer)
+        {
+            transform.GetChild(0).localScale = new Vector3(2 - (intensite / 30 + 1), 2 - (intensite / 30 + 1), intensite / 30 + 1);
+        }
+        else
+        {
+            if(playerVelocity.magnitude<0.2f)
+            {
+                transform.GetChild(0).localScale = Vector3.one;
+            }
+            else
+            {
+                transform.GetChild(0).localScale = new Vector3(intensite / 30 + 1, intensite / 30 + 1, 2 - (intensite / 30 + 1));
+            }
+        }
+            
+
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == 6)
+        {
+            jumpHeightPower *= 0.8f;
+            playerVelocity.y = Mathf.Sqrt(jumpHeightPower * -3.0f * gravityValue);
+            //Debug.Log(other +"  "+playerVelocity.y);
         }
     }
 }
