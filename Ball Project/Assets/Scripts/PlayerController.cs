@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private InputActionReference jumpControl;
     [SerializeField]
-    private float playerSpeed = 2.0f;
+    private float playerSpeed = 20.0f;
     [SerializeField]
     private float jumpHeight = 20.0f;
     [SerializeField]
@@ -23,6 +23,10 @@ public class PlayerController : MonoBehaviour
     private float rotationSpeed = 200f;
     [SerializeField]
     private float jumpHeightPower = 0f;
+    [SerializeField]
+    private int bonce;
+    [SerializeField]
+    private int timerBonce;
 
 
     private CharacterController controller;
@@ -47,6 +51,8 @@ public class PlayerController : MonoBehaviour
         controller = gameObject.GetComponent<CharacterController>();
         cameraMainTransform = Camera.main.transform;
         Application.targetFrameRate = 60;
+        bonce = 3;
+        timerBonce = 0;
     }
 
     void Update()
@@ -94,27 +100,51 @@ public class PlayerController : MonoBehaviour
             transform.GetChild(0).localScale = new Vector3(2 - (intensite / 30 + 1), 2 - (intensite / 30 + 1), intensite / 30 + 1);
         }
         else
-        {
+        {/*
             if(playerVelocity.magnitude<0.2f)
             {
                 transform.GetChild(0).localScale = Vector3.one;
-            }
-            else
+            }*/
+            transform.GetChild(0).localScale = Vector3.one;
+            /*else
             {
                 transform.GetChild(0).localScale = new Vector3(intensite / 30 + 1, intensite / 30 + 1, 2 - (intensite / 30 + 1));
-            }
+            }*/
         }
-            
+        if (timerBonce>0)
+        {
+            Debug.Log("AA");
+            Squash();
+            if(timerBonce==1)
+            {
+                Boncing();
+            }
+            timerBonce--;
+        }
 
     }
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.layer == 6)
         {
-            jumpHeightPower *= 0.8f;
-            playerVelocity.y = Mathf.Sqrt(jumpHeightPower * -3.0f * gravityValue);
+            timerBonce = bonce;
+            Debug.Log(timerBonce);
+            //jumpHeightPower *= 0.8f;
+            //playerVelocity.y = Mathf.Sqrt(jumpHeightPower * -3.0f * gravityValue);
             //Debug.Log(other +"  "+playerVelocity.y);
         }
+    }
+    public void Squash()
+    {
+        transform.GetChild(0).localScale += new Vector3(0.04f, -0.04f,0.04f);
+        transform.GetChild(0).transform.localPosition += new Vector3(0, -0.04f / 2, 0);  
+    }
+    public void Boncing()
+    {
+        transform.GetChild(0).transform.localPosition = new Vector3(0, 0, 0);
+        jumpHeightPower *= 0.8f;
+        playerVelocity.y = Mathf.Sqrt(jumpHeightPower * -3.0f * gravityValue);
+        //Debug.Log(other +"  "+playerVelocity.y);
     }
 }
 
