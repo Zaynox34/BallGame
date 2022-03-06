@@ -14,7 +14,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private InputActionReference jumpControl;
     [SerializeField]
-    private float playerSpeed = 20.0f;
+    private InputActionReference absorbControl;
+    [SerializeField]
+    private float playerSpeed = 50.0f;
     [SerializeField]
     private float jumpHeight = 20.0f;
     [SerializeField]
@@ -27,6 +29,9 @@ public class PlayerController : MonoBehaviour
     private int bonce;
     [SerializeField]
     private int timerBonce;
+    [SerializeField]
+    private Material myMaterial;
+
 
 
     private CharacterController controller;
@@ -40,11 +45,13 @@ public class PlayerController : MonoBehaviour
     {
         moveControl.action.Enable();
         jumpControl.action.Enable();
+        absorbControl.action.Enable();
     }
     private void OnDisable()
     {
         moveControl.action.Disable();
         jumpControl.action.Disable();
+        absorbControl.action.Disable();
     }
     private void Start()
     {
@@ -78,11 +85,6 @@ public class PlayerController : MonoBehaviour
             Debug.Log(playerVelocity.y);
         }
 
-        if (jumpControl.action.triggered )
-        {
-            Debug.Log('Z');
-        }
-
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
         if(movement!=Vector2.zero)
@@ -113,7 +115,6 @@ public class PlayerController : MonoBehaviour
         }
         if (timerBonce>0)
         {
-            Debug.Log("AA");
             Squash();
             if(timerBonce==1)
             {
@@ -121,6 +122,10 @@ public class PlayerController : MonoBehaviour
             }
             timerBonce--;
         }
+        /*if (!absorbControl.action.IsPressed())
+        {
+            myMaterial.color = Color.blue;
+        }*/
 
     }
     private void OnTriggerEnter(Collider other)
@@ -129,6 +134,11 @@ public class PlayerController : MonoBehaviour
         {
             timerBonce = bonce;
             Debug.Log(timerBonce);
+            if (absorbControl.action.IsPressed())
+            {
+                myMaterial.color = Color.red;
+                timerBonce = 0;
+            }
             //jumpHeightPower *= 0.8f;
             //playerVelocity.y = Mathf.Sqrt(jumpHeightPower * -3.0f * gravityValue);
             //Debug.Log(other +"  "+playerVelocity.y);
