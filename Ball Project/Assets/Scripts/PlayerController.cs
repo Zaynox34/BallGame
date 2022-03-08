@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour
 
 
     private CharacterController controller;
-
+    public GameObject electricParticule;
     public Vector3 playerVelocity;
     [SerializeField]
     private bool groundedPlayer;
@@ -61,6 +61,8 @@ public class PlayerController : MonoBehaviour
     }
     private void Start()
     {
+        myMaterial.color = new Color(255, 0, 0, 255);
+        electricParticule.SetActive(false);
         controller = gameObject.GetComponent<CharacterController>();
         cameraMainTransform = Camera.main.transform;
         Application.targetFrameRate = 60;
@@ -68,9 +70,16 @@ public class PlayerController : MonoBehaviour
         timerBonce = 0;
         powerMemorize = 0;
     }
+    IEnumerator ElecticDisplay()
+    {
+        electricParticule.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        electricParticule.SetActive(false);
+    }
 
     void Update()
     {
+        myMaterial.color = new Color(powerMemorize / 100000 * 255, 0, 0, 255);
         groundedPlayer = controller.isGrounded;
         if (groundedPlayer && playerVelocity.y < 0)
         {
@@ -174,6 +183,7 @@ public class PlayerController : MonoBehaviour
     }
     public void AbsorbPower(float power)
     {
+        StartCoroutine(ElecticDisplay());
         powerMemorize += power;
         Debug.Log("Absorb");
     }
