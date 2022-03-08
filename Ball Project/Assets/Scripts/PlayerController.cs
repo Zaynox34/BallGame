@@ -16,9 +16,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private InputActionReference absorbControl;
     [SerializeField]
+    private InputActionReference impactControl;
+    [SerializeField]
     private float playerSpeed = 50.0f;
     [SerializeField]
-    private float jumpHeight = 20.0f;
+    private float jumpHeight = 100.0f;
     [SerializeField]
     private float gravityValue = -9.81f;
     [SerializeField]
@@ -31,6 +33,8 @@ public class PlayerController : MonoBehaviour
     private int timerBonce;
     [SerializeField]
     private Material myMaterial;
+    [SerializeField]
+    private float powerMemorize;
 
 
 
@@ -46,12 +50,14 @@ public class PlayerController : MonoBehaviour
         moveControl.action.Enable();
         jumpControl.action.Enable();
         absorbControl.action.Enable();
+        impactControl.action.Enable();
     }
     private void OnDisable()
     {
         moveControl.action.Disable();
         jumpControl.action.Disable();
         absorbControl.action.Disable();
+        impactControl.action.Disable();
     }
     private void Start()
     {
@@ -60,6 +66,7 @@ public class PlayerController : MonoBehaviour
         Application.targetFrameRate = 60;
         bonce = 3;
         timerBonce = 0;
+        powerMemorize = 0;
     }
 
     void Update()
@@ -72,10 +79,19 @@ public class PlayerController : MonoBehaviour
         }
         Vector2 movement = moveControl.action.ReadValue<Vector2>();
 ;       move = new Vector3(movement.x, 0, movement.y);
-        move = cameraMainTransform.forward * move.z + cameraMainTransform.right * move.x;
-        move.y = 0f;
-        controller.Move(move * Time.deltaTime * playerSpeed);
-
+        if (impactControl.action.IsPressed())
+        {
+            move = cameraMainTransform.forward * move.z + cameraMainTransform.right * move.x+cameraMainTransform.up * move.y;
+            move *= powerMemorize;
+            controller.Move(move * Time.deltaTime * playerSpeed);
+            powerMemorize = 0;
+        }
+        else
+        {
+            move = cameraMainTransform.forward * move.z + cameraMainTransform.right * move.x;
+            move.y = 0f;
+            controller.Move(move * Time.deltaTime * playerSpeed);
+        }
 
         // Changes the height position of the player..
         if (jumpControl.action.triggered && groundedPlayer)
@@ -136,7 +152,7 @@ public class PlayerController : MonoBehaviour
             Debug.Log(timerBonce);
             if (absorbControl.action.IsPressed())
             {
-                myMaterial.color = Color.red;
+                AbsorbPower((playerVelocity + move).magnitude);
                 timerBonce = 0;
             }
             //jumpHeightPower *= 0.8f;
@@ -155,6 +171,11 @@ public class PlayerController : MonoBehaviour
         jumpHeightPower *= 0.8f;
         playerVelocity.y = Mathf.Sqrt(jumpHeightPower * -3.0f * gravityValue);
         //Debug.Log(other +"  "+playerVelocity.y);
+    }
+    public void AbsorbPower(float power)
+    {
+        powerMemorize += power;
+        Debug.Log("Absorb");
     }
 }
 
